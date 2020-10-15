@@ -13,6 +13,7 @@ class ToDoListTableViewController: UITableViewController {
     var toDoList = UserDefaults.standard.stringArray(forKey: "ToDoList") ?? [String]()
     var finishList = UserDefaults.standard.stringArray(forKey: "FinishList") ?? [String]()
     var addButton :UIButton!
+    var checkStatus = false
     
     @IBOutlet weak var myTableView: UITableView!
     @IBOutlet weak var myTextField: UITextField!
@@ -67,18 +68,15 @@ class ToDoListTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         let finishcell = tableView.dequeueReusableCell(withIdentifier: "finish", for: indexPath)
-        func removeButtonFromCellContentView(){
+        
+        if indexPath.section == 0{
+            cell.textLabel?.text = toDoList[indexPath.row]
             // 移除舊的按鈕
             for view in cell.contentView.subviews {
                 if let v = view as? UIButton {
                     v.removeFromSuperview()
                 }
             }
-        }
-        
-        if indexPath.section == 0{
-            cell.textLabel?.text = toDoList[indexPath.row]
-            removeButtonFromCellContentView()
             
             // 完成事項的按鈕
             let checkBtn = UIButton(frame: CGRect(x: 317, y: 3.67, width: 43, height: 43))
@@ -91,8 +89,14 @@ class ToDoListTableViewController: UITableViewController {
             return cell
             
         }else{
+           
             finishcell.textLabel?.text = finishList[indexPath.row]
-            removeButtonFromCellContentView()
+            // 移除舊的按鈕
+            for view in finishcell.contentView.subviews {
+                if let v = view as? UIButton {
+                    v.removeFromSuperview()
+                }
+            }
             
             // 返回未完成事項的按鈕
             let uncheckBtn = UIButton(frame: CGRect(x: 317, y: 3.67, width: 43, height: 43))
@@ -157,14 +161,14 @@ class ToDoListTableViewController: UITableViewController {
             if indexPath.section == 0{
                 print("delete : ToDoList \(indexPath.row) row")
                 toDoList.remove(at: indexPath.row)
-                //tableView.deleteRows(at: [indexPath], with: .fade)
+                tableView.deleteRows(at: [indexPath], with: .fade)
                 myTableView.reloadData()
                 UserDefaults.standard.set(self.toDoList, forKey: "ToDoList")
                 
             }else{
                 print("delete : FinishList \(indexPath.row) row")
                 finishList.remove(at: indexPath.row)
-                //tableView.deleteRows(at: [indexPath], with: .fade)
+                tableView.deleteRows(at: [indexPath], with: .fade)
                 myTableView.reloadData()
                 UserDefaults.standard.set(self.finishList, forKey: "FinishList")
             }
