@@ -7,24 +7,34 @@
 //
 
 import UIKit
+import UserNotifications
+
+class MyTableViewCell:  UITableViewCell{
+    
+    @IBOutlet weak var checkout: UIButton!
+    @IBOutlet weak var check: UIButton!
+    @IBOutlet weak var labelTime: UILabel!
+    
+}
 
 class ToDoListTableViewController: UITableViewController {
     
     var toDoList = UserDefaults.standard.stringArray(forKey: "ToDoList") ?? [String]()
     var finishList = UserDefaults.standard.stringArray(forKey: "FinishList") ?? [String]()
-    var addButton :UIButton!
-    var checkStatus = false
+    var dateLabel = UserDefaults.standard.stringArray(forKey: "DateLabel") ?? [String]()
     
     @IBOutlet weak var myTableView: UITableView!
     @IBOutlet weak var myTextField: UITextField!
     
     // 新增待辦事項＿按鈕執行動作
-    @objc func addList(_ sender: Any) {
+    @IBAction func addList(_ sender: UIButton) {
         if let list = myTextField.text{
             if list != ""{
                 toDoList.append(list)
+                dateLabel.append("")
                 // 將清單存到手機中
                 UserDefaults.standard.set(toDoList, forKey: "ToDoList")
+                UserDefaults.standard.set(toDoList, forKey: "DateLabel")
                 myTableView.reloadData()
             }
             myTextField.text = ""
@@ -36,17 +46,15 @@ class ToDoListTableViewController: UITableViewController {
         super.viewDidLoad()
         tableView.delaysContentTouches = false
         //https://medium.com/@dafu1231/%E5%9C%A8uitableviewcell%E4%B8%8A%E7%9A%84button%E7%9A%84highlight-626f451ed023
-        // 新增事項的按鈕
-        addButton = UIButton(type: .contactAdd)
-        addButton.center = CGPoint(x: 345, y: 25)
-        addButton.addTarget(self, action: #selector(ToDoListTableViewController.addList(_:)), for: .touchUpInside)
-        //self.view.addSubview(addButton)
+        
+        // 新增 navigationItem edit 編輯按鈕
+        self.navigationItem.rightBarButtonItem = self.editButtonItem
+        self.editButtonItem.tintColor = .systemPink
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         myTextField.becomeFirstResponder()
-        self.view.addSubview(addButton)
     }
     
     // MARK: - Table view data source
@@ -64,51 +72,29 @@ class ToDoListTableViewController: UITableViewController {
         }
     }
     
-    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        let finishcell = tableView.dequeueReusableCell(withIdentifier: "finish", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MyTableViewCell
+        let finishcell = tableView.dequeueReusableCell(withIdentifier: "finish", for: indexPath) as! MyTableViewCell
         
         if indexPath.section == 0{
             cell.textLabel?.text = toDoList[indexPath.row]
-            // 移除舊的按鈕
-            for view in cell.contentView.subviews {
-                if let v = view as? UIButton {
-                    v.removeFromSuperview()
-                }
+            cell.labelTime.text = dateLabel[indexPath.row]
+   
+            if dateLabel[indexPath.row] != ""{
+                createNotification(todo: toDoList[indexPath.row], dateString: dateLabel[indexPath.row])
             }
             
-            // 完成事項的按鈕
-            let checkBtn = UIButton(frame: CGRect(x: 317, y: 3.67, width: 43, height: 43))
-            checkBtn.setImage(UIImage(named: "checkbox"), for: .normal)
-            checkBtn.setImage(UIImage(named: "check"), for: .highlighted)
-            checkBtn.tag = indexPath.row
-            checkBtn.addTarget(self, action: #selector(ToDoListTableViewController.checkBtnAction), for: .touchUpInside)
-            cell.contentView.addSubview(checkBtn)
-            
+            cell.checkout.tag = indexPath.row
             return cell
-            
         }else{
-           
-            finishcell.textLabel?.text = finishList[indexPath.row]
-            // 移除舊的按鈕
-            for view in finishcell.contentView.subviews {
-                if let v = view as? UIButton {
-                    v.removeFromSuperview()
-                }
-            }
-            
-            // 返回未完成事項的按鈕
-            let uncheckBtn = UIButton(frame: CGRect(x: 317, y: 3.67, width: 43, height: 43))
-            uncheckBtn.setImage(UIImage(named: "check"), for: .normal)
-            uncheckBtn.setImage(UIImage(named: "checkbox"), for: .highlighted)
-            uncheckBtn.tag = indexPath.row
-            uncheckBtn.addTarget(self, action: #selector(ToDoListTableViewController.uncheckBtnAction), for: .touchUpInside)
-            finishcell.contentView.addSubview(uncheckBtn)
-            
+            // 灰字+刪除線+斜體
+            let AttributedString = NSMutableAttributedString(string: finishList[indexPath.row])
+            AttributedString.setAttributes([.foregroundColor: UIColor.gray, .strikethroughStyle: NSNumber(value: NSUnderlineStyle.single.rawValue), .obliqueness: 0.5], range: NSMakeRange(0, AttributedString.length))
+
+            finishcell.textLabel?.attributedText = AttributedString
+            finishcell.check.tag = indexPath.row
             return finishcell
         }
-        
     }
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -119,36 +105,14 @@ class ToDoListTableViewController: UITableViewController {
         }
     }
     
+    var detailUpdateRow = 0
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.section == 0{
-            // 更新事項
-            let updateAlertController = UIAlertController(title: "更新", message: nil, preferredStyle: .alert)
-            
-            // 建立輸入框
-            updateAlertController.addTextField { (textFields) in
-                textFields.placeholder = "更新事項"
-                textFields.text = self.toDoList[indexPath.row]
-            }
-            
-            // 建立更新按鈕
-            let updateAction = UIAlertAction(title: "完成", style: .default) { (UIAlertAction) in
-                if let updata = updateAlertController.textFields![0].text{
-                    // 有輸入內容才做更新
-                    if updata != ""{
-                        self.toDoList[indexPath.row] = updata
-                        UserDefaults.standard.set(self.toDoList, forKey: "ToDoList")
-                        self.myTableView.reloadData()
-                    }
-                }
-            }
-            updateAlertController.addAction(updateAction)
-
-            // 建立取消按鈕
-            let cancelAction = UIAlertAction(title: "取消", style: .cancel, handler: nil)
-            updateAlertController.addAction(cancelAction)
-            
-            // 顯示提示框
-            present(updateAlertController, animated: true, completion: nil)
+            let todo = toDoList[indexPath.row]
+            detailUpdateRow = indexPath.row
+            performSegue(withIdentifier: "showDetail", sender: todo)
+            print("按下的是 \(todo) 的 detail")
         }
         
         // 取消 cell 的選取狀態
@@ -157,13 +121,14 @@ class ToDoListTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            
             if indexPath.section == 0{
                 print("delete : ToDoList \(indexPath.row) row")
                 toDoList.remove(at: indexPath.row)
+                dateLabel.remove(at: indexPath.row)
                 tableView.deleteRows(at: [indexPath], with: .fade)
                 myTableView.reloadData()
                 UserDefaults.standard.set(self.toDoList, forKey: "ToDoList")
+                UserDefaults.standard.set(self.dateLabel, forKey: "DateLabel")
                 
             }else{
                 print("delete : FinishList \(indexPath.row) row")
@@ -180,8 +145,53 @@ class ToDoListTableViewController: UITableViewController {
         return true
     }
     
-    //完成代辦事項＿按鈕執行動作
-    @objc func checkBtnAction(_ sender: UIButton) {
+    // Override to support rearranging the table view.
+    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
+        if fromIndexPath.section == 0{
+            // 將移動的項目賦值給 number
+            let move = toDoList[fromIndexPath.row]
+            // 將原有位置的項目刪除
+            toDoList.remove(at: fromIndexPath.row)
+            // 將剛剛移動的項目插入到新的位置
+            toDoList.insert(move, at: to.row)
+        }else{
+            // 將移動的項目賦值給 number
+            let move = finishList[fromIndexPath.row]
+            // 將原有位置的項目刪除
+            finishList.remove(at: fromIndexPath.row)
+            // 將剛剛移動的項目插入到新的位置
+            finishList.insert(move, at: to.row)
+        }
+        
+        myTableView.reloadData()
+        UserDefaults.standard.set(self.toDoList, forKey: "ToDoList")
+        UserDefaults.standard.set(self.finishList, forKey: "FinishList")
+        
+        //https://medium.com/@JJeremy.XUE/swift-tableview-%E4%B9%8B-editing-style-f8b48769d026
+    }
+    
+
+    //拖拽某行到一个目标上方时触发该方法，询问是否移动或者修正
+    override func tableView(_ tableView: UITableView,
+                   targetIndexPathForMoveFromRowAt sourceIndexPath: IndexPath,
+                   toProposedIndexPath proposedDestinationIndexPath: IndexPath) -> IndexPath {
+        //如果目标位置和拖动行不是同一个分区，则拖动行返回自己原来的分区
+        if sourceIndexPath.section != proposedDestinationIndexPath.section {
+//            var row = 0
+//            //如果是往下面的分区拖动，则回到原分区末尾
+//            //如果是往上面的分区拖动，则会到原分区开头位置
+//            if sourceIndexPath.section < proposedDestinationIndexPath.section {
+//                row = tableView.numberOfRows(inSection: sourceIndexPath.section)-1
+//            }
+//            return IndexPath(row: row, section: sourceIndexPath.section)
+            return sourceIndexPath
+        }else{
+           return proposedDestinationIndexPath
+        }
+        //return proposedDestinationIndexPath
+    }
+    
+    @IBAction func checkBtnAction(_ sender: UIButton) {
         let index = sender.tag
         print("Button with tag: \(index) clicked in cell!")
         finishList.append(toDoList[index])
@@ -189,13 +199,14 @@ class ToDoListTableViewController: UITableViewController {
         UserDefaults.standard.set(finishList, forKey: "FinishList")
         
         toDoList.remove(at: index)
+        dateLabel.remove(at: index)
         myTableView.deleteRows(at: [IndexPath(row: index, section: 0)], with: .fade)
         myTableView.reloadData()
         UserDefaults.standard.set(toDoList, forKey: "ToDoList")
+        UserDefaults.standard.set(dateLabel, forKey: "DateLabel")
     }
     
-    //完成代辦事項＿按鈕執行動作
-    @objc func uncheckBtnAction(_ sender: UIButton) {
+    @IBAction func uncheckBtnAction(_ sender: UIButton) {
         let index = sender.tag
         print("Button with tag: \(index) clicked in finishcell!")
         toDoList.append(finishList[index])
@@ -203,29 +214,66 @@ class ToDoListTableViewController: UITableViewController {
         UserDefaults.standard.set(toDoList, forKey: "ToDoList")
         
         finishList.remove(at: index)
+        dateLabel.append("")
         myTableView.deleteRows(at: [IndexPath(row: index, section: 1)], with: .fade)
         myTableView.reloadData()
         UserDefaults.standard.set(finishList, forKey: "FinishList")
+        UserDefaults.standard.set(dateLabel, forKey: "DateLabel")
     }
     
-//    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-//        if segue.identifier == "showDetail"{
-//            if let detail = segue.destination as? DetailViewController{
-//                detail.animal = sender as? String
-//                // 設定下一頁標題～
-//                detail.navigationItem.title = sender as? String
-//            }
-//        }
-//    }
-
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showDetail"{
+            if let detail = segue.destination as? DetailTableViewController{
+                detail.myText = sender as? String
+            }
+        }
     }
-    */
 
+    @IBAction func unwindDetailBack(segue: UIStoryboardSegue) { // 註冊Unwind segue的標記
+        let updateToDo = segue.source as? DetailTableViewController
+        if let update = updateToDo?.updateToDo , let date = updateToDo?.dateLabel{
+            print(update)
+            toDoList[detailUpdateRow] = update
+            dateLabel[detailUpdateRow] = date
+            
+            myTableView.reloadData()
+            UserDefaults.standard.set(toDoList, forKey: "ToDoList")
+            UserDefaults.standard.set(dateLabel, forKey: "DateLabel")
+        }
+    }
+
+    func createNotification(todo:String, dateString:String){
+        print(todo + " : " + dateString)
+        
+        // 時間dateString 改成 date
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "YYYY/MM/dd a hh:mm" // 設定要顯示在日期時間格式
+        dateFormatter.amSymbol = "上午"
+        dateFormatter.pmSymbol = "下午"
+        let date = dateFormatter.date(from: dateString)
+        
+        // 設定提醒內容
+        let content = UNMutableNotificationContent()
+        content.title = "來提醒你囉～"
+        content.subtitle = todo
+        content.body = ""
+        content.badge = 1
+        content.sound = UNNotificationSound.default
+        
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: date!)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+           
+        //let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)
+        let request = UNNotificationRequest(identifier: todo, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
+    }
+    
+    
+    
+    
+    
+    
     /*
     // Override to support conditional rearranging of the table view.
     override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
