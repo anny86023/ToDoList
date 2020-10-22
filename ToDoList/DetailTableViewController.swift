@@ -8,35 +8,27 @@
 
 import UIKit
 
-class DetailTableViewController: UITableViewController {
-
-    var myText: String?
-    var dateLabel: String?
-    var updateToDo = ""
-    //var date = Date()
-    var toDoList = UserDefaults.standard.stringArray(forKey: "ToDoList") ?? [String]()
+class DetailTableViewController: UITableViewController, UITextFieldDelegate {
+    var todolist: ToDoList?
+    var date = ""
 
     @IBOutlet weak var myTextField: UITextField!
-    
     @IBOutlet weak var myTextView: UITextView!
-    
     @IBOutlet weak var datePicker: UIDatePicker!
-    
     @IBOutlet weak var dateSwitch: UISwitch!
-    
     @IBOutlet weak var timeSwitch: UISwitch!
+    @IBOutlet weak var dateLabel: UILabel!
     
     @IBAction func dateSwitch(_ sender: UISwitch) {
         if sender.isOn == true{
-            print("dateSwitch It's on")
             datePicker.datePickerMode = UIDatePicker.Mode.date
             
             tableView.beginUpdates()
             tableView.endUpdates()
         }else{
             timeSwitch.isOn = false
-            dateLabel = ""
-            print("dateSwitch It's off")
+            date = ""
+            dateLabel.text = date // 更新dateLabel的內容
             
             tableView.beginUpdates()
             tableView.endUpdates()
@@ -45,16 +37,14 @@ class DetailTableViewController: UITableViewController {
     
     @IBAction func timeSwitch(_ sender: UISwitch) {
         if sender.isOn == true{
-            print("timeSwitch It's on")
             datePicker.datePickerMode = UIDatePicker.Mode.dateAndTime
             
         }else{
             datePicker.datePickerMode = UIDatePicker.Mode.date
-            print("timeSwitch It's off")
-            
         }
     }
-        
+    
+    // 取得 datePicker 選取日期
     @IBAction func dateSelect(_ sender: UIDatePicker) {
         let dateFormatter = DateFormatter()
         if timeSwitch.isOn == true{
@@ -66,40 +56,44 @@ class DetailTableViewController: UITableViewController {
         dateFormatter.pmSymbol = "下午"
         
         print(dateFormatter.string(from: datePicker.date))
-        dateLabel = dateFormatter.string(from: datePicker.date)
-        //myText.text = dateValue.string(from: datePicker.date) // 更新Text Field的內容
+        date = dateFormatter.string(from: datePicker.date)
+        dateLabel.text = date // 更新dateLabel的內容
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let mytext = myText{
-            myTextField.text = mytext
-            updateToDo = mytext
-        }
+        myTextField.text = todolist?.todo
+        myTextView.text = todolist?.note
         
-        if dateLabel == nil{
+        if todolist?.date == ""{
             dateSwitch.isOn = false
         }else{
             dateSwitch.isOn = true
         }
+        
+        //設置點擊事件
+        let tap = UITapGestureRecognizer(target: self, action: #selector(closekeyboard))
+        tap.cancelsTouchesInView = false
+        self.tableView.addGestureRecognizer(tap)
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        myTextField.becomeFirstResponder()
+    //點擊空白處收鍵盤
+    @objc func closekeyboard(sender: UITapGestureRecognizer) {
+        print("closekeyboard")
+        myTextField.resignFirstResponder()
     }
-
+    
+    // 傳值回前一頁
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-    
+        let todo = myTextField.text ?? ""
+        let note = myTextView.text ?? ""
+        todolist = ToDoList(todo: todo, note: note, date: date)
     }
     
     //檢查代辦事項是否為空
     override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
         if myTextField.text?.isEmpty == false{
-            if let update = myTextField.text{
-                updateToDo = update
-            }
             return true
         }else{
             let alertcontroller = UIAlertController(title: "錯誤", message: "請輸入代辦事項！", preferredStyle: .alert)
@@ -111,6 +105,7 @@ class DetailTableViewController: UITableViewController {
     
     // MARK: - Table view data source
     
+    // dateSwitch 開關隱藏/顯示 datePicker cell
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         switch(indexPath.section, indexPath.row){
             case(1, 1):

@@ -10,7 +10,7 @@
         <scene sceneID="BLd-xQ-HTL">
             <objects>
                 <tableViewController id="9Iw-Na-LSi" customClass="ToDoListTableViewController" customModule="ToDoList" customModuleProvider="target" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" separatorStyle="default" rowHeight="50" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="VzT-f1-CIf">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" keyboardDismissMode="onDrag" dataMode="prototypes" style="grouped" separatorStyle="default" rowHeight="50" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="VzT-f1-CIf">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
@@ -130,7 +130,6 @@
                     </tableView>
                     <navigationItem key="navigationItem" title="To Do List" id="aQj-p9-mI7"/>
                     <connections>
-                        <outlet property="myTableView" destination="VzT-f1-CIf" id="EGS-Po-Fmf"/>
                         <outlet property="myTextField" destination="JZ9-HG-c6h" id="gnm-5d-TtS"/>
                         <segue destination="geU-Sy-uMf" kind="show" identifier="showDetail" id="lFY-dY-Llq"/>
                     </connections>
@@ -143,7 +142,7 @@
         <scene sceneID="xdV-oi-3aZ">
             <objects>
                 <tableViewController id="geU-Sy-uMf" customClass="DetailTableViewController" customModule="ToDoList" customModuleProvider="target" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="50" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="zVF-W9-wUP">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" keyboardDismissMode="onDrag" dataMode="static" style="plain" separatorStyle="default" rowHeight="50" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="zVF-W9-wUP">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <sections>
@@ -181,7 +180,7 @@
                                                 <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="備註" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="lmn-MN-uxW">
                                                     <rect key="frame" x="18.666666666666657" y="6.3333333333333321" width="337.66666666666674" height="37.333333333333343"/>
                                                     <color key="backgroundColor" systemColor="systemGray6Color" red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                                    <color key="textColor" systemColor="systemGray2Color" red="0.68235294120000001" green="0.68235294120000001" blue="0.69803921570000005" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <color key="textColor" systemColor="systemGrayColor" red="0.5568627451" green="0.5568627451" blue="0.57647058819999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                                 </textView>
@@ -251,9 +250,21 @@
                                                     <color key="textColor" systemColor="systemBlueColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OKp-H2-lcW">
+                                                    <rect key="frame" x="104" y="13" width="256" height="24"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="24" id="HQq-NG-HTY"/>
+                                                        <constraint firstAttribute="width" constant="256" id="mAe-hL-ZL6"/>
+                                                    </constraints>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="20"/>
+                                                    <color key="textColor" systemColor="systemOrangeColor" red="1" green="0.58431372550000005" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
                                             </subviews>
                                             <constraints>
+                                                <constraint firstAttribute="trailing" secondItem="OKp-H2-lcW" secondAttribute="trailing" constant="15" id="DSt-WW-Aar"/>
                                                 <constraint firstItem="jXK-Jg-vf5" firstAttribute="leading" secondItem="EJp-eV-LWT" secondAttribute="leadingMargin" id="Igk-fM-Ern"/>
+                                                <constraint firstItem="OKp-H2-lcW" firstAttribute="centerY" secondItem="EJp-eV-LWT" secondAttribute="centerY" id="aoI-GR-E2c"/>
                                                 <constraint firstItem="jXK-Jg-vf5" firstAttribute="centerY" secondItem="EJp-eV-LWT" secondAttribute="centerY" id="jOA-bz-Ee2"/>
                                             </constraints>
                                         </tableViewCellContentView>
@@ -265,7 +276,7 @@
                                             <rect key="frame" x="0.0" y="0.0" width="375" height="150"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <datePicker contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="dateAndTime" minuteInterval="1" translatesAutoresizingMaskIntoConstraints="NO" id="FJq-OO-AYH">
+                                                <datePicker contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" translatesAutoresizingMaskIntoConstraints="NO" id="FJq-OO-AYH">
                                                     <rect key="frame" x="0.0" y="0.0" width="375" height="150"/>
                                                     <date key="minimumDate" timeIntervalSinceReferenceDate="624877200">
                                                         <!--2020-10-20 09:00:00 +0000-->
@@ -336,11 +347,12 @@
                     <navigationItem key="navigationItem" title="Detail" id="b6J-Uh-Vkt">
                         <barButtonItem key="rightBarButtonItem" systemItem="done" id="8jZ-Cb-cpr">
                             <connections>
-                                <segue destination="hVa-mM-cLh" kind="unwind" unwindAction="unwindDetailBackWithSegue:" id="VHs-73-EWZ"/>
+                                <segue destination="hVa-mM-cLh" kind="unwind" unwindAction="unwindDetailBackWithSegue:" id="23X-3R-D5k"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="dateLabel" destination="OKp-H2-lcW" id="jPe-bJ-W40"/>
                         <outlet property="datePicker" destination="FJq-OO-AYH" id="788-D5-ybZ"/>
                         <outlet property="dateSwitch" destination="uPJ-4X-FZ7" id="gNG-92-oGV"/>
                         <outlet property="myTextField" destination="H3j-Jw-fTC" id="heu-NF-wRX"/>
